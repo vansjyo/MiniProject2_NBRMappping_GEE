@@ -1,3 +1,17 @@
+
+// function to mask cloud and cloud shadow
+function maskL8sr(image) {
+  // Bits 3 and 5 are cloud shadow and cloud, respectively.
+  var cloudShadowBitMask = (1 << 3);
+  var cloudsBitMask = (1 << 5);
+  // Get the pixel QA band.
+  var qa = image.select('QA60');
+  // Both flags should be set to zero, indicating clear conditions.
+  var mask = qa.bitwiseAnd(cloudShadowBitMask).eq(0)
+                .and(qa.bitwiseAnd(cloudsBitMask).eq(0));
+  return image.updateMask(mask);
+}
+
 //prefire image
 var prefire_image = ee.Image('COPERNICUS/S2/20161228T052222_20161228T052548_T43PEQ');
 print(prefire_image);
@@ -55,10 +69,9 @@ Map.addLayer(dNBR.sldStyle(sld_intervals), {}, 'dNBR classified');
 Map.addLayer(dNBR, {min: -1000, max: 1000, palette: grey}, 'NBR classified');
 Map.addLayer(delta, {max:2,min:-2}, 'delta');
 
-
-
-
-
-
-
-//
+Export.image.toDrive({
+  image: dNBR,
+  description: 'sen2',
+  scale: 30,
+  region: geometry
+});
